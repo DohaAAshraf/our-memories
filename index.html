@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Our Beautiful Moments</title>
+
+<style>
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+}
+
+body{
+  font-family:'Segoe UI', Tahoma, sans-serif;
+  min-height:100vh;
+
+  background: url("bg.jpg") no-repeat center center fixed;
+  background-size: cover;
+
+  overflow-x:hidden;
+}
+
+/* overlay خفيف عشان الصورة تبان أحلى */
+body::before{
+  content:"";
+  position:fixed;
+  top:0;
+  left:0;
+  width:100%;
+  height:100%;
+  background:rgba(0,0,0,0.25);
+  z-index:-1;
+}
+
+/* ===== LOCK SCREEN ===== */
+#lock-screen{
+  min-height:100vh;
+  width:100%;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:24px;
+  padding:40px 20px;
+  background:transparent;
+}
+
+.cover-img-wrapper{
+  width:160px;
+  height:160px;
+  border-radius:50%;
+  border:4px solid #fff;
+  overflow:hidden;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  box-shadow:0 8px 32px rgba(0,0,0,0.3);
+}
+
+.cover-img-wrapper img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+}
+
+.lock-title{
+  font-size:26px;
+  font-weight:600;
+  color:#fff;
+  text-align:center;
+}
+
+.lock-subtitle{
+  font-size:15px;
+  color:#eee;
+  text-align:center;
+}
+
+.password-box{
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+  width:100%;
+  max-width:280px;
+  align-items:center;
+}
+
+.password-box input{
+  width:100%;
+  padding:12px 16px;
+  border-radius:50px;
+  border:2px solid rgba(255,255,255,0.4);
+  background:rgba(255,255,255,0.2);
+  text-align:center;
+  color:#fff;
+  outline:none;
+}
+
+.error-msg{
+  color:#ff0000;
+  font-size:13px;
+  display:none;
+}
+
+.unlock-btn{
+  padding:12px 36px;
+  border:none;
+  border-radius:50px;
+  cursor:pointer;
+  background:#fff;
+}
+
+/* ===== GALLERY ===== */
+#gallery-screen{
+  display:none;
+  flex-direction:column;
+  align-items:center;
+  min-height:100vh;
+  width:100%;
+  background:transparent;
+}
+
+.gallery-header{
+  width:100%;
+  padding:30px 20px;
+  text-align:center;
+}
+
+.gallery-header h1{
+  color:#fff;
+}
+
+.photos-scroll{
+  width:100%;
+  max-width:500px;
+  padding:20px;
+  display:flex;
+  flex-direction:column;
+  gap:20px;
+}
+
+.photo-frame{
+  background:#fff;
+  border-radius:16px;
+  overflow:hidden;
+  padding:12px;
+}
+
+.photo-frame img{
+  width:100%;
+  max-height:350px;
+  object-fit:contain;
+  display:block;
+  margin:0 auto;
+}
+.photo-caption{
+  padding:15px;
+  text-align:center;
+  font-size:14px;
+  color:#333;
+}
+
+.message-section {
+  width: 100%;
+  max-width: 500px;
+  margin: 40px auto;
+  padding: 25px;
+  border-radius: 18px;
+
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px);
+
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+}
+
+.message-section label {
+  display: block;
+  font-size: 18px;
+  font-weight: 600;
+  color: #4b1528;
+  margin-bottom: 12px;
+}
+
+.message-section textarea {
+  width: 100%;
+  min-height: 220px;
+
+  padding: 16px;
+  border-radius: 14px;
+
+  border: 1px solid rgba(212, 83, 126, 0.3);
+  background: rgba(255, 255, 255, 0.85);
+
+  font-size: 15px;
+  line-height: 1.8;
+  color: #4b1528;
+
+  resize: none;
+  outline: none;
+
+  font-family: inherit;
+
+  transition: all 0.3s ease;
+}
+
+.message-section textarea:focus {
+  border-color: #d4537e;
+  box-shadow: 0 0 10px rgba(212, 83, 126, 0.2);
+}
+
+textarea{
+  width:100%;
+  min-height:120px;
+  padding:14px;
+  border-radius:12px;
+  border:none;
+}
+
+.photo-frame{
+  opacity: 0;
+  transform: translateY(60px) scale(0.95);
+  transition: all 0.8s ease;
+}
+
+.photo-frame.show{
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+</style>
+</head>
+<body>
+  <div id="stars"></div>
+
+  <!-- LOCK SCREEN -->
+  <div id="lock-screen">
+    <div class="cover-img-wrapper">
+    <img src="cover.jpg" alt="Our Photo">
+</div>
+    <div>
+      <div class="lock-title">Our Beautiful Moments ✨</div>
+      <div class="lock-subtitle">Enter the password to see your surprise</div>
+    </div>
+    <div class="password-box">
+      <input type="password" id="pw-input" placeholder="Password..." maxlength="20" />
+      <button class="unlock-btn" onclick="checkPassword()">Open </button>
+      <span class="error-msg" id="err-msg"> Wrong password, try again!</span>
+    </div>
+  </div>
+
+  <!-- GALLERY SCREEN -->
+  <div id="gallery-screen">
+    <div class="gallery-header">
+      <h1>A Chapter I'll Never Forget🤍</h1>
+    </div>
+
+    <div class="photos-scroll">
+
+      <!-- Photo 1 — change src to your image file name -->
+      <div class="photo-frame">
+        <img src="photo1.jpg" alt="Photo 1" />
+        <div class="photo-caption">It all started with this photo… and I never imagined it would become one of my favorite memories🤍 </div>
+      </div>
+
+      <!-- Photo 2 -->
+      <div class="photo-frame">
+        <img src="photo2.jpg" alt="Photo 2" />
+        <div class="photo-caption">One of the happiest days of my life… I smiled differently because you were there🌊</div>
+      </div>
+
+      <!-- Photo 3 -->
+      <div class="photo-frame">
+        <img src="photo3.jpg" alt="Photo 3" />
+        <div class="photo-caption">I still miss our study dates… somehow, even studying felt special when it was with you</div>
+      </div>
+
+      <!-- Photo 4 -->
+      <div class="photo-frame">
+        <img src="photo4.jpg" alt="Photo 4" />
+        <div class="photo-caption">Our first stadium, our first match… another beautiful 'first' I'll always remember</div>
+      </div>
+
+      <!-- Photo 5 -->
+      <div class="photo-frame">
+        <img src="photo5.jpg" alt="Photo 5" />
+        <div class="photo-caption">Thank you for always being by my side. You made every difficult moment feel a little easier</div>
+      </div>
+
+      <!-- Photo 6 -->
+      <div class="photo-frame">
+        <img src="photo6.jpg" alt="Photo 6" />
+        <div class="photo-caption">I miss our walks through Zamalek… the conversations, the laughter, and the peace I always felt with you🌍</div>
+      </div>
+
+      <!-- Photo 7 -->
+      <div class="photo-frame">
+        <img src="photo7.jpg" alt="Photo 7" />
+        <div class="photo-caption">Even an ordinary day at the gym became a memory worth keeping because I was sharing it with you</div>
+      </div>
+
+      <!-- Photo 8 -->
+      <div class="photo-frame">
+        <img src="photo8.jpg" alt="Photo 8" />
+        <div class="photo-caption">I was so proud of you that day… and I still am. I know you'll achieve every dream you're working for</div>
+      </div>
+
+      <!-- Photo 9 -->
+      <div class="photo-frame">
+        <img src="photo9.jpg" alt="Photo 9" />
+        <div class="photo-caption">One more unforgettable adventure… just like every beautiful day I got to spend with you🚣</div>
+      </div>
+
+      <!-- Photo 10 -->
+      <div class="photo-frame">
+        <img src="photo10.jpg" alt="Photo 10" />
+        <div class="photo-caption">You turned simple moments into the kind of memories people carry forever✨</div>
+      </div>
+
+      <!-- Photo 11 -->
+      <div class="photo-frame">
+        <img src="photo11.jpg" alt="Photo 11" />
+        <div class="photo-caption">I miss our trips so much… especially this one. Alexandria will always remind me of one of the happiest chapters of my life with you</div>
+      </div>
+
+      <!-- Photo 12 -->
+      <div class="photo-frame">
+        <img src="photo12.jpg" alt="Photo 12" />
+        <div class="photo-caption">This has always been one of my favorite pictures… because every time I look at it, it brings back a feeling I can't put into words</div>
+      </div>
+
+      <!-- Photo 13 -->
+      <div class="photo-frame">
+        <img src="photo13.jpg" alt="Photo 13" />
+        <div class="photo-caption">Some memories don't need a reason to be special… they simply are</div>
+      </div>
+
+      <!-- Photo 14 -->
+      <div class="photo-frame">
+        <img src="photo14.jpg" alt="Photo 14" />
+        <div class="photo-caption">You gave me so many moments that I'll always carry with me, wherever life takes me</div>
+      </div>
+
+      <!-- Photo 15 -->
+      <div class="photo-frame">
+        <img src="photo15.jpg" alt="Photo 15" />
+        <div class="photo-caption">Walking beside you always made me feel safe, proud, and like the luckiest lady in the world</div>
+      </div>
+
+      <!-- Photo 16 -->
+      <div class="photo-frame">
+        <img src="photo16.jpg" alt="Photo 16" />
+        <div class="photo-caption">Thank you for every laugh, every conversation, and every little moment that became a beautiful memory</div>
+      </div>
+
+      <!-- Photo 17 -->
+      <div class="photo-frame">
+        <img src="photo17.jpg" alt="Photo 17" />
+        <div class="photo-caption">If memories could speak, these would tell the happiest stories📸</div>
+      </div>
+
+      <!-- Photo 18 -->
+      <div class="photo-frame">
+        <img src="photo18.jpg" alt="Photo 18" />
+        <div class="photo-caption">Our last Ramadan together… a month full of peace, and memories that will always stay close to my heart🌙✨</div>
+      </div>
+
+      <!-- Photo 19 -->
+      <div class="photo-frame">
+        <img src="photo19.jpg" alt="Photo 19" />
+        <div class="photo-caption">No matter how life changed, this moment will always remain a beautiful memory</div>
+      </div>
+
+      <!-- Photo 20 -->
+      <div class="photo-frame">
+        <img src="photo20.jpg" alt="Photo 20" />
+        <div class="photo-caption">Happy Birthday🤍</div>
+      </div>
+
+     
+
+    </div>
+
+    <div class="message-section">
+      <label>❤️ For You...</label>
+      <!-- Write your message below -->
+      <textarea readonly>I truly hope this year brings you nothing but happiness, success, peace, and everything you've ever wished for. I hope every dream you've been working toward becomes your reality, because I know how capable you are. I've always believed in you, and I always will.
+
+No matter how much time passes or how life changes, you'll always be one of the most special people I've ever known. To me, you'll always be the best thing that ever happened in my life. Knowing you was one of the greatest blessings I've ever had, and every memory we shared will always have a special place in my heart.
+
+I'm so proud of you—of the person you are, of your strength, your kindness, and everything you're becoming. Even from a distance, I'll always be cheering for you and hoping life gives you every bit of happiness you deserve.
+
+Some people come into our lives and are forgotten with time, but there are others who leave a mark on our hearts forever. You're one of those people for me. You'll always have a place in my heart that no one else could ever replace.
+
+I will always love you because you're truly worth loving. More than anything, I just want to see you happy, successful, and at peace. I hope this new chapter of your life opens every door you've been waiting for and brings you endless joy.
+
+Happy Birthday once again. Thank you for being the most beautiful chapter of my life. No matter where life takes us, I'll always be grateful that our paths crossed. I wish you nothing but the very best, today and always. ❤️</textarea>
+    </div>
+  </div>
+  
+
+  
+
+  <script>
+    // ===== Change the password here =====
+    const PASSWORD = "muri";
+
+    // YouTube Video ID
+    const YT_VIDEO_ID = "o2DXt11SMNI";
+
+    let musicPlaying = false;
+
+   function checkPassword() {
+    const val = document.getElementById('pw-input').value;
+    const err = document.getElementById('err-msg');
+
+    if (val.toLowerCase() === PASSWORD.toLowerCase()) {
+
+        document.getElementById('lock-screen').style.display = 'none';
+        document.getElementById('gallery-screen').style.display = 'flex';
+
+        const music = document.getElementById("bgMusic");
+
+        music.currentTime = 0;
+        music.play();
+
+    } else {
+
+        err.style.display = 'block';
+        document.getElementById('pw-input').value = '';
+
+        setTimeout(() => {
+            err.style.display = 'none';
+        }, 2500);
+    }
+}
+
+function toggleMusic() {
+
+    const music = document.getElementById("bgMusic");
+    const btn = document.getElementById("musicBtn");
+
+    if (music.paused) {
+        music.play();
+        btn.innerHTML = "⏸ Pause Music";
+    } else {
+        music.pause();
+        btn.innerHTML = "▶ Play Music";
+    }
+
+}
+   
+
+    document.getElementById('pw-input').addEventListener('keydown', e => {
+      if (e.key === 'Enter') checkPassword();
+    });
+
+    function typeText(element, text, speed = 85) {
+    element.textContent = "";
+    element.classList.add("typing");
+
+    let i = 0;
+
+    function type() {
+        if (i < text.length) {
+            element.textContent += text.charAt(i);
+            i++;
+            setTimeout(type, speed);
+        }
+    }
+
+    type();
+}
+const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+        if (entry.isIntersecting) {
+
+            const frame = entry.target;
+            const caption = frame.querySelector(".photo-caption");
+
+            // 👇 show image animation
+            frame.classList.add("show");
+
+            if (!caption.dataset.done) {
+                caption.dataset.done = "true";
+
+                const text = caption.innerText;
+                caption.innerText = ""; // مهم جدًا
+
+                setTimeout(() => {
+                    typeText(caption, text, 60);
+                }, 300);
+            }
+        }
+    });
+}, { threshold: 0.5 });
+
+document.querySelectorAll(".photo-frame").forEach(frame => observer.observe(frame));
+
+document.querySelectorAll(".photo-frame").forEach(frame => observer.observe(frame));
+  
+  const revealObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if(entry.isIntersecting){
+      entry.target.classList.add("show");
+    }
+  });
+}, { threshold: 0.2 });
+
+document.querySelectorAll(".photo-frame").forEach(el => {
+  revealObserver.observe(el);
+});
+  
+  </script>
+
+  <audio id="bgMusic" loop preload="auto">
+  <source src="video.mp3" type="audio/mpeg">
+</audio>
+
+
+</body>
+</html>
